@@ -83,7 +83,7 @@
         <input type="email" id="email" placeholder="Email Constitucional">
         <input type="text" id="matricula" placeholder="Número da Matrícula">
         <input type="password" id="password" placeholder="Senha">
-        <button class="logar-professor" onclick="login('professor', 'home.html')">Logar como Professor</button>
+        <button class="logar-professor" onclick="login('professor', 'home.php')">Logar como Professor</button>
         <button onclick="login('coordenador', 'pag-coordenador/home-coordenador.html')">Logar como Coordenador</button>
     </div>
 </body>

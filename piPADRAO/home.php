@@ -235,7 +235,7 @@
         </div>
         <div class="right-section">
             <button class="logout-button" onclick="showConfirmDialog()">Sair</button>
-            <a href="faltas.html" class="button2">Justificar Faltas</a>
+            <a href="faltas.php" class="button2">Justificar Faltas</a>
             <a href="reposicao.html" class="button">Planejar Reposição</a>
             <a href="professor.html" class="button3">Histórico</a>
         </div>

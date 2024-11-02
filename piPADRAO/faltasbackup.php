@@ -1,3 +1,30 @@
+<?php
+
+include 'conexao.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data_inicio = $_POST['data_inicio'];
+    $data_fim = $_POST['data_fim'];
+    $arquivo = $_FILES['arquivo_pdf'];
+    $motivo_falta = $_POST['motivo1'];
+
+    if ($arquivo['error'] === UPLOAD_ERR_OK) {
+        $nomeArquivo = uniqid() . "-" . $arquivo['name'];
+        move_uploaded_file($arquivo['tmp_name'], "uploads/$nomeArquivo");
+
+        $stmt = $conn->prepare("INSERT INTO formulario_faltas (datainicio, datafim
+        pdf_atestado, motivo_falta) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$data_inicio, $data_fim, $nomeArquivo, $motivo_falta]);
+
+        header("Location: home.php");
+        exit;
+    }
+}
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -265,36 +292,36 @@
         </nav>
     </header>
 
-    <form id="myForm">
-        <fieldset>
-            <legend>Informações Pessoais</legend>
-            <div class="input-row">
-                <label for="nome">Nome:</label>
-                <input type="text" class="nome" name="nome" value="">
-                <script>
-                    var name = localStorage.getItem("userName");
-                    if (name) {
-                        document.querySelector('.nome').value = name;
-                    }
-                </script>
-            </div>
-            <div class="input-row">
-                <label for="matricula">Matrícula:</label>
-                <input type="text" class="matricula" name="matricula" id="matricula" value="" readonly>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
+    <form method="POST" enctype="multipart/form-data">
+    <fieldset>
+        <legend>Informações Pessoais</legend>
+        <div class="input-row">
+            <label for="nome">Nome:</label>
+            <input type="text" class="nome" name="nome" required>
+            <script>
+                var name = localStorage.getItem("userName");
+                if (name) {
+                    document.querySelector('.nome').value = name;
+                }
+            </script>
+        </div>
+        <div class="input-row">
+            <label for="matricula">Matrícula:</label>
+            <input type="text" class="matricula" name="matricula" id="matricula" readonly required>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
                     var matricula = localStorage.getItem("userMatricula");
                     if (matricula) {
-                    document.getElementById("matricula").value = matricula;
-                }
-            });
-                </script>
-                <label for="funcao">Função:</label>
-                <input type="text" class="funcao" name="funcao" value="Professor de Ensino Superior" readonly>
-                <label for="regime">Regime Jurídico:</label>
-                <input type="text" class="regime" name="regime" value="CLT" readonly>
-            </div>
-        </fieldset>
+                        document.getElementById("matricula").value = matricula;
+                    }
+                });
+            </script>
+            <label for="funcao">Função:</label>
+            <input type="text" class="funcao" name="funcao" value="Professor de Ensino Superior" readonly required>
+            <label for="regime">Regime Jurídico:</label>
+            <input type="text" class="regime" name="regime" value="CLT" readonly required>
+        </div>
+    </fieldset>
         <fieldset class="ausencia">
             <legend>Curso(s) Envolvido(s) na Ausência</legend>
             <label><input type="checkbox" class="CEA" name="curso" value="CST-DSM"> CST-DSM</label>
@@ -307,12 +334,9 @@
         <fieldset class="faltas">
             <legend>Falta Referente</legend>
             <label for="data-falta">Falta referente ao dia:</label>
-            <input type="date" class="data-falta" name="data-falta">
-            <label class="textperiodo">ou período de <input type="text" class="dias-input" name="quantidade-dias"> dias:</label>
-            <label class="textinicio" for="data-inicio">Início:</label>
-            <input type="date" class="data-inicio small-input" name="data-inicio">
-            <label class="textfim" for="data-fim">Fim:</label>
-            <input type="date" class="data-fim small-input" name="data-fim">
+            <input type="date" class="data-falta" name="data_inicio">
+            <label class="textfim" for="data-fim">Até:</label>
+            <input type="date" class="data-fim small-input" name="data_fim">
         </fieldset>
         
 
@@ -339,53 +363,54 @@
             
         
                 <div class="motivo falta-injustificada">
-                    <label><input type="checkbox" class="FI" name="motivo" value="falta-injustificada"> Falta</label>
+                    <label><input type="checkbox" class="FI" name="motivo1" value="falta-injustificada"> Falta</label>
                     <label><input type="checkbox" class="LFM" name="motivo1" value="comparecimento-medico"> Atraso ou Saída Antecipada, das <input type="time" class="small-input"> às <input type="time" class="small-input"></label>
                 </div>
         
                 <div class="motivo faltas-justificadas">
-                    <label><input type="checkbox" class="FJ" name="motivo" value="falta-justificada"> Falta por motivo de:</label>
+                    <label><input type="checkbox" class="FJ" name="motivo1" value="falta-justificada"> Falta por motivo de:</label>
                     <textarea name="motivo-descricao" rows="1"></textarea>
                     <label><input type="checkbox" class="LFM" name="motivo1" value="comparecimento-medico"> Atraso ou Saída Antecipada das <input type="time" class="small-input"> às <input type="time" class="small-input"> Por motivo de:</label>
                     <textarea name="atraso-descricao" rows="1"></textarea>
                 </div>
         
                 <div class="motivo faltas-previstas-legislacao">
-                    <label><input type="checkbox" class="FPLT" name="motivo" value="falecimento-conjuge"> Falecimento de cônjuge, pai, mãe, filho (9 dias consecutivos)</label>
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="falecimento-outros"> Falecimento de outros familiares (2 dias consecutivos)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" value="falecimento-conjuge"> Falecimento de cônjuge, pai, mãe, filho (9 dias consecutivos)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="falecimento-outros"> Falecimento de outros familiares (2 dias consecutivos)</label>
 
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="casamento"> Casamento (9 dias consecutivos)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="casamento"> Casamento (9 dias consecutivos)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="nascimento-filho"> Nascimento de filho (5 dias)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="nascimento-filho"> Nascimento de filho (5 dias)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="acompanhamento-esposa"> Acompanhar esposa ou companheira (Até 2 dias)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="acompanhamento-esposa"> Acompanhar esposa ou companheira (Até 2 dias)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="acompanhamento-filho"> Acompanhar filho até 6 anos (1 dia por ano)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="acompanhamento-filho"> Acompanhar filho até 6 anos (1 dia por ano)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="doacao-sangue"> Doação voluntária de sangue (1 dia em cada 12 meses)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="doacao-sangue"> Doação voluntária de sangue (1 dia em cada 12 meses)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="alistamento-eleitor"> Alistamento como eleitor (Até 2 dias)</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="alistamento-eleitor"> Alistamento como eleitor (Até 2 dias)</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="depoimento-judicial"> Convocação para depoimento judicial</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="depoimento-judicial"> Convocação para depoimento judicial</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="comparecimento-juri"> Comparecimento como jurado no Tribunal do Júri</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="comparecimento-juri"> Comparecimento como jurado no Tribunal do Júri</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="servico-eleitoral"> Convocação para serviço eleitoral</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="servico-eleitoral"> Convocação para serviço eleitoral</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="composicao-mesa-eleitoral"> Dispensa para compor mesas eleitorais</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="composicao-mesa-eleitoral"> Dispensa para compor mesas eleitorais</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="prova-vestibular"> Realização de Prova de Vestibular</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="prova-vestibular"> Realização de Prova de Vestibular</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="justica-trabalho"> Comparecimento como parte na Justiça do Trabalho</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="justica-trabalho"> Comparecimento como parte na Justiça do Trabalho</label>
                     
-                    <label><input type="checkbox" class="FPLT" name="motivo" id="acidente-transporte"> Atrasos devido a acidentes de transporte</label>
+                    <label><input type="checkbox" class="FPLT" name="motivo1" id="acidente-transporte"> Atrasos devido a acidentes de transporte</label>
                 </div>
             </div>
         </fieldset>
    
 
         <div class="form-footer">
-            <input type="file" id="fileInput" multiple>
+            <label for=""></label>
+            <input type="file" class="form-control" name="arquivo_pdf" accept=".pdf" id="fileInput" required>
             <ul id="fileList"></ul>
         </div>       
 
@@ -436,9 +461,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const LFMCheckboxes = document.querySelectorAll('input[name="motivo1"]');
-            const FICheckboxes = document.querySelectorAll('input[name="motivo"]');
-            const FJCheckboxes = document.querySelectorAll('input[name="motivo"]');
-            const FPLTCheckboxes = document.querySelectorAll('input[name="motivo"]');
+            const FICheckboxes = document.querySelectorAll('input[name="motivo1"]');
+            const FJCheckboxes = document.querySelectorAll('input[name="motivo1"]');
+            const FPLTCheckboxes = document.querySelectorAll('input[name="motivo1"]');
             const horarioInputs = document.querySelectorAll('.horario');
 
             function handleCheckboxClick(checkboxes) {
@@ -485,8 +510,6 @@
             var dataInicio = document.querySelector('input[name="data-inicio"]').value.trim();
             var dataFim = document.querySelector('input[name="data-fim"]').value.trim();
             var motivo = document.getElementById('motivo').value.trim();
-            var fileInput = document.querySelector('input[type="file"]');
-            var fileSelected = fileInput.files.length > 0;
     
             // Verificar se "Falta referente ao dia" ou "período de x dias" está preenchido
             var faltaReferentePreenchido = dataFalta || (quantidadeDias && dataInicio && dataFim);
